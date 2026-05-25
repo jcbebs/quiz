@@ -1,0 +1,362 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+#app{padding:1rem 0}
+.header{margin-bottom:1.5rem}
+.header h2{font-size:18px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.header p{font-size:14px;color:var(--color-text-secondary)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+.tab{padding:6px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all 0.15s}
+.tab.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500}
+.quiz-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem}
+.progress-bar{height:4px;background:var(--color-border-tertiary);border-radius:2px;margin-bottom:1.25rem;overflow:hidden}
+.progress-fill{height:100%;background:#178BCA;border-radius:2px;transition:width 0.3s}
+.q-meta{font-size:12px;color:var(--color-text-tertiary);margin-bottom:8px}
+.q-text{font-size:15px;color:var(--color-text-primary);margin-bottom:1.25rem;line-height:1.6}
+.options{display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem}
+.opt{padding:10px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:14px;cursor:pointer;color:var(--color-text-primary);background:var(--color-background-primary);text-align:left;transition:all 0.15s;line-height:1.5}
+.opt:hover:not(:disabled){background:var(--color-background-secondary);border-color:var(--color-border-primary)}
+.opt.correct{background:#EAF3DE;border-color:#639922;color:#27500A}
+.opt.wrong{background:#FCEBEB;border-color:#A32D2D;color:#501313}
+.opt.reveal-correct{background:#EAF3DE;border-color:#639922;color:#27500A}
+.feedback{font-size:13px;padding:10px 14px;border-radius:var(--border-radius-md);margin-bottom:1.25rem;line-height:1.5}
+.feedback.correct{background:#EAF3DE;color:#27500A;border:0.5px solid #639922}
+.feedback.wrong{background:#FCEBEB;color:#501313;border:0.5px solid #A32D2D}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.btn{padding:8px 18px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:14px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.primary{background:#178BCA;border-color:#178BCA;color:#fff}
+.btn.primary:hover{background:#1278B0}
+.score-card{text-align:center;padding:2rem 1rem}
+.score-big{font-size:48px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px}
+.score-label{font-size:16px;color:var(--color-text-secondary);margin-bottom:1.5rem}
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
+.score-metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center}
+.score-metric .num{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.score-metric .lbl{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+</style>
+<h2 class="sr-only">WordPress Final Exam Quiz — 8 topic quizzes with 20+ questions each</h2>
+<div id="app"></div>
+<script>
+const MODULES = [
+  {
+    id:'intro',
+    title:'WordPress Fundamentals',
+    desc:'CMS, ecosystem, WordPress.com vs .org',
+    questions:[
+      {q:'What does CMS stand for?',opts:['Content Modification System','Content Management System','Central Media Server','Code Management Suite'],ans:1,exp:'CMS stands for Content Management System — software that lets users create and manage website content without writing code from scratch.'},
+      {q:'WordPress is built on which core technologies?',opts:['Python and PostgreSQL','Ruby and SQLite','PHP and MySQL','JavaScript and MongoDB'],ans:2,exp:'WordPress is built on PHP as its scripting language and MySQL as its database.'},
+      {q:'Under which license is WordPress released, making it open source?',opts:['MIT License','Apache 2.0','Creative Commons','GPL (General Public License)'],ans:3,exp:'WordPress is licensed under the GPL, meaning it is free to use, modify, and redistribute.'},
+      {q:'Approximately what percentage of the internet does WordPress power?',opts:['Over 10%','Over 20%','Over 30%','Over 43%'],ans:3,exp:'As of the lecture notes, WordPress powers over 43% of the internet.'},
+      {q:'WordPress was launched in which year?',opts:['1999','2003','2007','2010'],ans:1,exp:'WordPress was launched in 2003, originally as a simple blogging tool.'},
+      {q:'What is WordPress.org?',opts:['A managed hosting service','Where you get the standalone software to self-host','An e-commerce marketplace','A paid premium CMS'],ans:1,exp:'WordPress.org provides the standalone version of WordPress that you install on your own server.'},
+      {q:'What is WordPress.com?',opts:['The official download site','A plugin marketplace','A managed platform where WordPress is hosted for you','A local development environment'],ans:2,exp:'WordPress.com is a managed service that hosts WordPress for you on their own platform.'},
+      {q:'On WordPress.com, who is responsible for maintenance and updates?',opts:['The site owner','A third-party agency','Automattic','The hosting provider'],ans:2,exp:'On WordPress.com, Automattic handles maintenance and updates automatically.'},
+      {q:'On WordPress.org (self-hosted), who handles maintenance?',opts:['Automattic','WordPress core team','The user','The web host automatically'],ans:2,exp:'With WordPress.org, the site owner is responsible for their own maintenance, backups, and updates.'},
+      {q:'What is one key advantage of a CMS over a static website?',opts:['It requires no server','Content in the database is separate from design controlled by themes','It automatically writes code for you','No hosting is ever needed'],ans:1,exp:'A CMS separates content (stored in a database) from design (controlled by themes), so changing the design doesn\'t affect your articles.'},
+      {q:'Which feature of WordPress allows control over who can do what on a site?',opts:['Widget system','User Roles and Permissions','Custom Post Types','Theme hierarchy'],ans:1,exp:'WordPress uses a User Roles system with granular Capabilities to control permissions across users.'},
+      {q:'What is a major security disadvantage of WordPress?',opts:['It cannot use SSL','Its popularity makes it a target for attacks','It doesn\'t support passwords','FTP is always required'],ans:1,exp:'Because WordPress is so popular, it is a frequent target for hackers, requiring consistent updates and security measures.'},
+      {q:'What is "performance bloat" in WordPress?',opts:['Using too many images','Too many plugins slowing down page load speeds','Having a large database','Using a heavy theme'],ans:1,exp:'Installing too many plugins can significantly slow down page load speeds — this is called performance bloat.'},
+      {q:'Which of these is NOT a listed user role in WordPress?',opts:['Subscriber','Moderator','Contributor','Editor'],ans:1,exp:'Moderator is not a default WordPress role. The default roles are Subscriber, Contributor, Author, Editor, and Administrator.'},
+      {q:'What does "separation of concerns" mean in CMS context?',opts:['Admin and editors work separately','Content is stored in the database separate from the design','Users and admins are always different people','Backend and frontend run on different servers'],ans:1,exp:'Separation of concerns means that content (database) is kept separate from design (themes), so you can redesign your site without losing content.'},
+      {q:'Which WordPress.org feature gives full, unrestricted freedom for themes and plugins?',opts:['WordPress.com Free plan','WordPress.org self-hosted','WordPress.com Business','WordPress.com Pro'],ans:1,exp:'WordPress.org self-hosted gives you full, unrestricted freedom to use any themes or plugins.'},
+      {q:'What does open-source mean for WordPress users?',opts:['You must pay for commercial use','You cannot modify the code','The software is free to use, modify, and redistribute','It is only available on Linux'],ans:2,exp:'Being licensed under GPL means WordPress is free to use, modify, and redistribute by anyone.'},
+      {q:'What type of websites can WordPress power?',opts:['Only personal blogs','Only corporate sites','Only e-commerce stores','Personal blogs, corporate sites, and e-commerce stores'],ans:3,exp:'WordPress is versatile and can power personal blogs, corporate sites, massive e-commerce stores, and anything in between.'},
+      {q:'What did websites look like "before CMS" in the early days of the web?',opts:['They used drag-and-drop builders','They were static, requiring manual code edits and FTP uploads to change anything','They used WordPress already','They required only HTML emails'],ans:1,exp:'Early websites were static — changing even a single comma required manual code edits and FTP uploads.'},
+      {q:'How many plugins are available on the WordPress marketplace according to lecture notes?',opts:['Over 5,000','Over 10,000','Over 50,000','Over 500,000'],ans:2,exp:'The lecture notes state there are access to over 50,000+ plugins to add functionality to WordPress.'},
+      {q:'What is an advantage of WordPress regarding search engine optimization?',opts:['WordPress blocks all search engines by default','Clean permalink structures and SEO plugins like Yoast or RankMath','WordPress has no URL structure','Google ignores WordPress sites'],ans:1,exp:'WordPress offers clean permalink structures and excellent SEO plugins like Yoast or RankMath, making it SEO friendly.'},
+      {q:'Which plan on WordPress.com restricts themes and plugins?',opts:['Business plan','Enterprise plan','Lower/free plans','All plans equally'],ans:2,exp:'On WordPress.com, themes and plugins are restricted on lower plans, unlike WordPress.org which has full freedom.'},
+    ]
+  },
+  {
+    id:'install',
+    title:'Installing WordPress Manually',
+    desc:'Database, download, XAMPP, installation steps',
+    questions:[
+      {q:'What are the three steps to manually install WordPress?',opts:['Download, Upload, Configure','Create database, Download WordPress, Run installation','Install XAMPP, Create user, Run WordPress','Buy hosting, Upload files, Add plugins'],ans:1,exp:'The three manual installation steps are: 1) Create a database, 2) Download WordPress and copy to server, 3) Run the WordPress installation.'},
+      {q:'What tool is used to manage the local database during manual installation?',opts:['FileZilla','phpMyAdmin','cPanel','WP-CLI'],ans:1,exp:'phpMyAdmin is used to create and manage the local database when installing WordPress manually.'},
+      {q:'What is the default local URL for phpMyAdmin?',opts:['http://localhost/mysql','http://localhost/phpmyadmin/','http://127.0.0.1/admin','http://localhost/database'],ans:1,exp:'phpMyAdmin is accessed via http://localhost/phpmyadmin/ in the browser.'},
+      {q:'What do the default username and password default to when working locally?',opts:['admin / admin','wordpress / wordpress','root / root (or blank)','user / password'],ans:2,exp:'When working locally with XAMPP, the username and password for the database default to root.'},
+      {q:'Where is WordPress downloaded from?',opts:['wordpress.com/download','wordpress.org/download/','github.com/wordpress','automattic.com/download'],ans:1,exp:'WordPress is downloaded from https://wordpress.org/download/'},
+      {q:'After downloading WordPress, the files are provided in what format?',opts:['An .exe installer','A zip file','An ISO image','A .tar.gz only'],ans:1,exp:'WordPress is downloaded as a zip file that you then unzip to get the WordPress folder with all files.'},
+      {q:'Where should the WordPress folder be placed for local XAMPP development?',opts:['C:\\xampp\\mysql','C:\\xampp\\htdocs','C:\\xampp\\apache\\conf','C:\\xampp\\php'],ans:1,exp:'The WordPress folder should be placed in C:\\xampp\\htdocs and can be renamed to your project name.'},
+      {q:'What two XAMPP modules must be started before accessing WordPress locally?',opts:['FileZilla and Mercury','Apache and MySQL','PHP and Tomcat','MariaDB and SFTP'],ans:1,exp:'You must start both Apache (the web server) and MySQL (the database) modules in XAMPP Control Panel.'},
+      {q:'When you browse to your local WordPress site, what is the first thing you see?',opts:['The WordPress dashboard','The first WordPress installation screen','The login page','A blank page'],ans:1,exp:'Navigating to your local site URL shows the first WordPress installation screen where you enter database details.'},
+      {q:'On the installation screen, what button do you click after entering database info?',opts:['Next','Connect','Submit','Install'],ans:2,exp:'After entering your database name, username, and password, you click Submit to proceed.'},
+      {q:'What fields should be left as-is (default values) during installation unless your host says otherwise?',opts:['Site Title and Email','Username and Password','Database Host and Table Prefix','Timezone and Language'],ans:2,exp:'Database Host and Table Prefix should be left as their default values unless your hosting provider specifies otherwise.'},
+      {q:'What information do you enter on the final "site details" installation screen?',opts:['Database name and server IP','Site title, username, password, and email address','FTP credentials and file path','Theme name and plugin list'],ans:1,exp:'The final screen asks for site title, username, password, and email address — the basic site setup info.'},
+      {q:'What does checking the Privacy box during installation do?',opts:['Hides your site from users','Allows Google and search engines to find your site','Encrypts the database','Enables two-factor authentication'],ans:1,exp:'Leaving the Privacy box checked tells search engines they are welcome to index your site.'},
+      {q:'After clicking "Install WordPress," what do you see upon success?',opts:['A blank white page','An error log','A success/congratulations screen','It redirects to Google'],ans:2,exp:'After successful installation, WordPress shows a success screen indicating the installation is complete.'},
+      {q:'What does the note "Step 1 is done—and that\'s the trickiest part" refer to?',opts:['Downloading WordPress','Creating the database','Running the installation wizard','Uploading files via FTP'],ans:1,exp:'Creating the database in phpMyAdmin is described as the trickiest part of manual installation.'},
+      {q:'When creating a database in phpMyAdmin, what tab do you click first?',opts:['SQL','Import','Databases','User accounts'],ans:2,exp:'You click the Databases tab at the top left of phpMyAdmin to open the databases screen where you can create a new database.'},
+      {q:'What does the WordPress installation screen confirm before showing "Run the Installation"?',opts:['Your site title is available','WordPress can communicate with your database','The theme is compatible','All plugins are updated'],ans:1,exp:'The installation screen confirms that WordPress can communicate with your database before proceeding to install.'},
+      {q:'After logging in post-installation, where does WordPress take you?',opts:['The front-end homepage','The phpMyAdmin dashboard','The WordPress Dashboard','The theme editor'],ans:2,exp:'After logging in, WordPress takes you directly to the WordPress Dashboard — the site\'s admin control center.'},
+      {q:'Can you rename the WordPress folder during local installation?',opts:['No, it must stay named "wordpress"','Yes, you can rename the htdocs folder','Yes, you can rename the WordPress folder','No, renaming breaks the installation'],ans:2,exp:'Yes, you can rename the WordPress folder to anything you like — this becomes part of your local URL.'},
+      {q:'What is the complete sequence of actions in XAMPP before creating a database?',opts:['Open browser → Open XAMPP → Start modules','Locate XAMPP control app → Start Apache and MySQL → Open browser','Install XAMPP → Restart PC → Open phpMyAdmin','Start FTP → Open database → Configure Apache'],ans:1,exp:'The correct sequence is: locate and open XAMPP control app → click Start for Apache and MySQL → then open Google Chrome.'},
+      {q:'Why is a database essential for WordPress?',opts:['It stores the WordPress PHP files','It holds all of the site\'s content — without it, WordPress won\'t work','It manages the theme CSS files','It controls user login sessions only'],ans:1,exp:'The database holds all of the site\'s content. Without a database, WordPress and your WordPress site won\'t work.'},
+      {q:'What kind of file do you get when you download WordPress from wordpress.org?',opts:['A .php file','A .sql database dump','A zip file containing all WordPress files','An .exe Windows installer'],ans:2,exp:'Downloading WordPress gives you a zip file. Unzipping it creates a folder called "wordpress" containing all the WordPress files.'},
+    ]
+  },
+  {
+    id:'dashboard',
+    title:'Learn How to Use WordPress',
+    desc:'Dashboard, sections, plugins overview',
+    questions:[
+      {q:'Where is the main navigation in the WordPress Dashboard?',opts:['Along the top toolbar','On the right-hand side','On the left-hand side','In the center panel'],ans:2,exp:'The main navigation links are displayed on the left-hand side of the Dashboard.'},
+      {q:'What widgets appear on the right-hand side of the WordPress Dashboard?',opts:['Plugins and Themes','Activity, At a Glance, and Site Health Status','Users and Roles','Comments and Pages'],ans:1,exp:'The right side of the Dashboard shows quick links and widgets like Activity, At a Glance, and Site Health Status.'},
+      {q:'Can widgets be rearranged on the WordPress Dashboard?',opts:['No, the layout is fixed','Yes, using the drag-and-drop feature','Only Administrators can move them','Only via a plugin'],ans:1,exp:'You can use the drag-and-drop feature to reorder widgets on the Dashboard, and display more widgets if desired.'},
+      {q:'What is the primary purpose of the Posts section?',opts:['Managing static pages','Managing categories and posts — the heart of any WordPress website','Uploading media files','Installing themes'],ans:1,exp:'Posts are the heart of any WordPress website. The Posts section lets you manage categories and posts — adding, editing, or deleting them.'},
+      {q:'What types of files does the Media section manage?',opts:['Only images','Only videos','Images, videos, PDF files, and similar media','Theme files and plugin zips'],ans:2,exp:'The Media section manages all media files including images, videos, PDFs, and similar content used across your site.'},
+      {q:'Once files are uploaded to the Media section, where are they available?',opts:['Only in the Media Library view','When creating posts or pages','Only through FTP','In the Settings panel'],ans:1,exp:'Files uploaded to the Media section become available to use when you create posts or pages.'},
+      {q:'What kind of content belongs in the Pages section rather than Posts?',opts:['Blog posts and news articles','Time-sensitive content','Static content that doesn\'t need publishing features','Comment-enabled articles'],ans:2,exp:'Pages in WordPress are for static content that doesn\'t need publishing features — like About or Contact pages.'},
+      {q:'What operations can you perform in the Comments section?',opts:['Only delete comments','Approve, Unapprove, Mark as Spam, and Move to trash','Edit the text of comments','Assign comments to categories'],ans:1,exp:'The Comments section allows you to Approve, Unapprove, Mark as Spam, and Move to Trash on post comments.'},
+      {q:'What does the Appearance section control?',opts:['User permissions','Plugin installations','Theme-related aspects — changing the look and feel, installing and switching themes','Database backups'],ans:2,exp:'The Appearance section lets you configure theme-related aspects of your website, including installing new themes and switching between them.'},
+      {q:'What does the Plugins section allow you to do?',opts:['Change site colors','Install and configure third-party plugins from the WordPress marketplace','Manage user accounts','Configure FTP settings'],ans:1,exp:'The Plugins section lets you install and configure third-party plugins from the WordPress marketplace, which has thousands of options.'},
+      {q:'Which user types can be created in the Users section?',opts:['Only Admin and Guest','Subscriber, Contributor, Author, Editor, and Admin','Customer, Manager, Staff, and Owner','Developer, Designer, Writer, and Viewer'],ans:1,exp:'The Users section lets you create and manage Subscriber, Contributor, Author, Editor, and Administrator user types.'},
+      {q:'What kinds of things are configured in the Settings section?',opts:['Plugins and themes','Global settings like date format, thumbnail size, and number of posts to display','FTP credentials and server settings','User passwords and roles'],ans:1,exp:'The Settings section is for global site settings like date format in posts, thumbnail image sizes, and how many posts to display per page.'},
+      {q:'What is a WordPress plugin?',opts:['A type of WordPress theme','A third-party bundle installed to enhance WordPress functionality','A built-in WordPress core feature','A database table extension'],ans:1,exp:'A WordPress plugin is a third-party bundle that you install on your site to enhance the functionality of WordPress.'},
+      {q:'Where can you find free WordPress plugins?',opts:['Only on paid marketplaces','On the WordPress marketplace (thousands of free plugins available)','Only through FTP upload','On GitHub exclusively'],ans:1,exp:'There are thousands of free plugins available on the WordPress marketplace; premium plugins are also available for advanced features.'},
+      {q:'What is an example of what a plugin can do for a WordPress site?',opts:['Replace the database','Turn the site into an online shopping cart (e-commerce plugin)','Remove the need for themes','Automatically write blog posts'],ans:1,exp:'For example, you could install an e-commerce plugin to turn your site into an online shopping cart.'},
+      {q:'How do you install a third-party plugin from a .zip file?',opts:['Upload via FTP to wp-content/plugins','Go to Plugins > Add New > Upload Plugin > Install Now','Email the plugin to WordPress support','Add it through the Settings section'],ans:1,exp:'To install a plugin from a zip: go to Plugins > Add New > click Upload Plugin > upload the .zip file > click Install Now.'},
+      {q:'What is the purpose of the "Site Health Status" widget on the Dashboard?',opts:['It shows site traffic statistics','It shows things you can do to improve performance and security','It displays pending comments','It shows plugin update counts'],ans:1,exp:'The Site Health Status widget on the Dashboard shows things you can do to improve your site\'s performance and security.'},
+      {q:'What is the "At a Glance" widget on the Dashboard used for?',opts:['Showing plugin settings','Displaying a summary like post count, page count, and active theme','Showing FTP connection status','Listing pending user registrations'],ans:1,exp:'"At a Glance" shows a quick summary of your site such as number of posts, pages, comments, and which theme is running.'},
+      {q:'What is the difference between Posts and Pages in WordPress?',opts:['There is no difference','Posts are for time-sensitive/blog content; Pages are for static, non-publishing content','Pages can have categories; Posts cannot','Posts can only be created by Admins'],ans:1,exp:'Posts are for dynamic/blog content with publishing features; Pages are for static content like About or Contact that doesn\'t need those features.'},
+      {q:'Where do you install a new theme in WordPress?',opts:['Under Plugins > Add New','Under Appearance','Under Settings > Themes','Under Tools > Import'],ans:1,exp:'New themes are installed through the Appearance section of the WordPress Dashboard.'},
+      {q:'How can you add more widgets to the WordPress Dashboard?',opts:['It\'s not possible','By installing a special plugin only','Using the "Screen Options" at the top of the Dashboard','By editing the functions.php file'],ans:2,exp:'You can display more widgets on the Dashboard using the Screen Options panel at the top right of the Dashboard page.'},
+      {q:'Which section would you use most often if you run a blog?',opts:['Users','Settings','Posts','Plugins'],ans:2,exp:'The Posts section is the one you will deal with most of the time on a blog — managing categories and writing/editing posts.'},
+    ]
+  },
+  {
+    id:'firstpost',
+    title:'Creating Your First Post',
+    desc:'Classic Editor, post creation, publishing',
+    questions:[
+      {q:'Before creating posts with Classic Editor, what must you do first?',opts:['Install XAMPP','Install and activate the Classic Editor plugin','Create a new user account','Configure the Settings > Writing page'],ans:1,exp:'You need to first install the Classic Editor plugin from Plugins > Add New and activate it before using it to create posts.'},
+      {q:'Where do you search for the Classic Editor plugin?',opts:['Under Appearance > Themes','Under Plugins > Add New — search Classic Editor','Under Settings > Plugins','Under Tools > Plugins'],ans:1,exp:'Go to Plugins > Add New, then search for "Classic Editor" in the search box, and click Install Now and Activate.'},
+      {q:'Where do you go to create a new post?',opts:['Pages > Add New','Posts > Add New','Media > Add New','Appearance > Editor'],ans:1,exp:'To create a new post, go to Posts > Add New in the WordPress backend.'},
+      {q:'What are the two main content fields you fill in when creating a post?',opts:['URL and author','Title and description/body content','Category and tag','Featured image and excerpt'],ans:1,exp:'The two main fields when creating a post are the Title and the description (body content area).'},
+      {q:'What types of content can you insert in the description area?',opts:['Only plain text','Only images','Paragraphs, quotes, images, and headings','Only headings and bold text'],ans:2,exp:'In the description area you can insert paragraphs, quotes, images, headings, and other types of content.'},
+      {q:'What is a "featured image" on a post?',opts:['The author\'s profile picture','The main/representative image associated with the post','A background image for the site','The post thumbnail shown in the admin'],ans:1,exp:'A featured image is the main representative image for a post, often displayed as a thumbnail in post listings and at the top of the post.'},
+      {q:'How do you publish a post after you\'ve written it?',opts:['Click "Save Draft" and email the admin','Click the Publish button on the top right','Go to Posts > All Posts and click Publish','Use FTP to upload the post file'],ans:1,exp:'Once you\'ve entered your content, click the Publish button in the top right to make the post live.'},
+      {q:'What is the "Save Draft" option used for?',opts:['Publishing to a staging server','Saving the post without making it public yet','Sending the post for editorial review','Deleting old post revisions'],ans:1,exp:'Save Draft saves your post without publishing it, so you can return and continue editing before going live.'},
+      {q:'What does "Visibility: Public" mean for a post?',opts:['Only logged-in users can see it','Anyone on the internet can view the post','The post is hidden from search engines','It is a password-protected post'],ans:1,exp:'"Visibility: Public" means the post is visible to anyone on the internet.'},
+      {q:'What is the Preview button used for?',opts:['Viewing the post as a draft before publishing','Checking FTP connection status','Previewing the database entries','Seeing the raw HTML of the post'],ans:0,exp:'The Preview button lets you see how the post will look on the front end before you officially publish it.'},
+      {q:'What does "Assign a post to a specific category" mean?',opts:['Setting who can edit the post','Organizing the post under a content category like Cafe, Food, Schools, etc.','Choosing which user wrote the post','Selecting the post\'s URL structure'],ans:1,exp:'Assigning a category organizes your post under a topic category (e.g. Cafe, Food, High School), making it easier for visitors to browse related content.'},
+      {q:'What does the Classic Editor plugin do?',opts:['Adds WooCommerce to WordPress','Restores the previous "classic" editor and old-style Edit Post screen','Creates automatic backups','Adds a page builder with drag-and-drop blocks'],ans:1,exp:'The Classic Editor plugin re-enables the previous classic editor UI, supporting all plugins that extend it such as Meta Boxes and Classic Widgets.'},
+      {q:'After publishing, where can you view the post?',opts:['Only in the admin backend','On the front-end of the site','Only via a special preview URL','Only when logged in as admin'],ans:1,exp:'After publishing, head over to the front-end of the site to see the published post as a visitor would see it.'},
+      {q:'Which panel in the Classic Editor shows the Publish button and visibility settings?',opts:['The content area (main editor)','The right-hand Publish panel','The bottom meta section','The left navigation bar'],ans:1,exp:'The right-hand Publish panel contains the Publish button, visibility settings, and the option to set when to publish.'},
+      {q:'How many active installations does the Classic Editor plugin have (per the lecture material)?',opts:['Over 100,000','Over 500,000','Over 1 million','Over 3 million (3+ million)'],ans:3,exp:'The Classic Editor has 3+ million active installations, making it one of the most popular WordPress plugins.'},
+      {q:'What is the "Word count" display at the bottom of the Classic Editor used for?',opts:['Billing purposes','Showing the number of words in the post body','Counting plugin scripts','Measuring post SEO score'],ans:1,exp:'The Word Count shown at the bottom of the editor tells you how many words are in your current post body.'},
+      {q:'What does clicking "Add Media" in the Classic Editor allow you to do?',opts:['Add a new user to the site','Insert images or other media files into the post content','Upload a new plugin','Access the phpMyAdmin database'],ans:1,exp:'"Add Media" opens the Media Library/uploader, allowing you to insert images or other media files directly into your post.'},
+      {q:'Which toolbar option switches between Visual and Text editing modes in Classic Editor?',opts:['Screen Options','The Format dropdown','The Visual/Text tabs at the top right of the editor','The Publish panel'],ans:2,exp:'The Visual and Text tabs at the top right of the Classic Editor switch between the WYSIWYG visual view and the raw HTML text view.'},
+      {q:'What would you click to add a new category while writing a post?',opts:['Settings > Categories','+ Add New Category link in the Categories panel','Posts > Categories','Plugins > Categories'],ans:1,exp:'In the Categories panel on the right while writing a post, there is an "+ Add New Category" link to create a new category inline.'},
+      {q:'What is a "Publish immediately" option in WordPress?',opts:['An emergency publish that bypasses review','Publishing the post at the current date and time','A scheduled future publish','A plugin-only feature'],ans:1,exp:'"Publish immediately" is the default option that publishes the post right now, at the current date and time.'},
+      {q:'Which classic editor tool allows you to add a block quote to your post?',opts:['The image button','The blockquote button in the formatting toolbar','The heading selector','The link button'],ans:1,exp:'The formatting toolbar in the Classic Editor includes a blockquote button that wraps selected text in a styled block quote.'},
+      {q:'What does the "Paragraph" dropdown in the Classic Editor toolbar control?',opts:['The column layout of the post','Text formatting — heading levels (H1-H6) and paragraph style','The post category','The featured image size'],ans:1,exp:'The Paragraph dropdown controls text formatting styles — you use it to apply heading levels (H1 through H6) or revert to normal paragraph text.'},
+    ]
+  },
+  {
+    id:'servermanage',
+    title:'WordPress Installation & Management',
+    desc:'Local/remote servers, FTP, upgrades',
+    questions:[
+      {q:'What is a Local Server environment used for?',opts:['Hosting live public websites','Allowing developers to build sites on their own hardware — faster, offline, and free for development','Replacing a hosting provider permanently','Storing database backups only'],ans:1,exp:'A Local Server environment lets developers build and test sites on their own hardware. It is faster, offline-capable, and cost-free for development.'},
+      {q:'What are the three "Stack" components needed for a local WordPress environment?',opts:['HTML, CSS, JavaScript','Apache/Nginx, MySQL/MariaDB, PHP','FTP, SFTP, SSH','cPanel, Softaculous, PhpMyAdmin'],ans:1,exp:'The stack requires: Apache/Nginx (web server), MySQL/MariaDB (database), and PHP (scripting language).'},
+      {q:'Which component of the stack is the web server?',opts:['PHP','MySQL/MariaDB','Apache/Nginx','XAMPP itself'],ans:2,exp:'Apache/Nginx is the web server component of the stack.'},
+      {q:'Which component of the stack handles the database?',opts:['PHP','Apache','MySQL/MariaDB','SFTP'],ans:2,exp:'MySQL/MariaDB is the database component of the stack.'},
+      {q:'Which component of the stack is the scripting language?',opts:['HTML','PHP','Apache','MySQL'],ans:1,exp:'PHP is the scripting language component of the development stack.'},
+      {q:'Name three popular tools for creating a local server environment instantly.',opts:['Photoshop, Illustrator, InDesign','FileZilla, PuTTY, WinSCP','XAMPP, WAMP, LocalWP','cPanel, Plesk, WHM'],ans:2,exp:'XAMPP, WAMP, and LocalWP are the most popular packages for instantly creating a local development environment.'},
+      {q:'What is FTP short for, and what is its purpose?',opts:['File Transfer Protocol — the bridge between your computer and the remote server','Fast Transfer Program — used to speed up WordPress','File Theme Plugin — manages WordPress files','Folder Transfer Path — sets server directories'],ans:0,exp:'FTP stands for File Transfer Protocol. It acts as the bridge between your local computer and the remote server, essential for troubleshooting.'},
+      {q:'When is FTP especially critical for WordPress?',opts:['When publishing a new post','When the WordPress dashboard is inaccessible for troubleshooting','When adding a new user','When updating a plugin from the admin'],ans:1,exp:'FTP is essential for troubleshooting when the WordPress dashboard itself is inaccessible — allowing direct file access on the server.'},
+      {q:'What port does standard FTP use?',opts:['Port 80','Port 443','Port 21','Port 3306'],ans:2,exp:'Standard FTP uses Port 21. Secure FTP (SFTP) uses Port 22.'},
+      {q:'What port does SFTP (Secure FTP) use?',opts:['Port 21','Port 22','Port 443','Port 8080'],ans:1,exp:'SFTP (Secure File Transfer Protocol) uses Port 22.'},
+      {q:'What three pieces of information do you need to connect via FTP?',opts:['Site title, admin email, password','Host (domain/IP), Username & Password, Port','Database name, table prefix, charset','SSL certificate, domain key, site secret'],ans:1,exp:'To connect via FTP you need: Host (usually your domain or server IP), Username & Password (FTP account from your host), and Port (21 for FTP, 22 for SFTP).'},
+      {q:'What are the two primary paths for installing WordPress on a remote server?',opts:['FTP install and SFTP install','Auto-installer (e.g. Softaculous) and Manual Install','WordPress.com and WordPress.org','cPanel install and SSH install'],ans:1,exp:'The two primary paths are Auto-Installers (like Softaculous in cPanel) and Manual Install (downloading core zip and setting up manually).'},
+      {q:'What does Softaculous do within cPanel?',opts:['It backs up your WordPress database','It automates the database and file setup for WordPress installation','It installs FTP server software','It manages user roles'],ans:1,exp:'Softaculous is a tool within cPanel that automates the database creation and WordPress file setup — making installation very quick.'},
+      {q:'What is the manual install process on a remote server?',opts:['Using Softaculous to auto-install','Downloading the core zip from WordPress.org, creating a database manually, and running the setup script','Clicking "Install WordPress" in cPanel','Uploading only the wp-config.php file'],ans:1,exp:'Manual install means downloading the core zip from WordPress.org, creating a database manually, and running the setup via wp-admin/install.php.'},
+      {q:'What three types of components get updates in WordPress maintenance?',opts:['Themes, Users, Settings','Core, Plugins, Themes','Database, PHP, Server','Posts, Pages, Media'],ans:1,exp:'WordPress maintenance updates cover three areas: Core (security patches and new features), Plugins (functional updates), and Themes (design refinements).'},
+      {q:'What is the safety protocol order before upgrading WordPress?',opts:['Update, Backup, Stage','Backup, Stage, Update','Stage, Update, Backup','Test, Deploy, Backup'],ans:1,exp:'The correct safety protocol is: 1) Backup (database + wp-content), 2) Staging (test on a clone), 3) Update (execute via dashboard).'},
+      {q:'What should you back up before a WordPress upgrade?',opts:['Only the wp-config.php file','Only the database','The database AND the wp-content folder','The entire server operating system'],ans:2,exp:'Before upgrading, you should export your database and save a copy of your wp-content folder as the essential backup.'},
+      {q:'What is "staging" in the context of WordPress upgrades?',opts:['A live update pushed to production immediately','Testing the update on a private clone of the site before applying to the live site','Setting up a new server','Staging all plugin updates at once'],ans:1,exp:'Staging means testing the update on a clone/copy of your live site. This lets you catch any issues before they affect real visitors.'},
+      {q:'Where do you execute a WordPress upgrade?',opts:['Via FTP file upload','Via phpMyAdmin','Via the "Updates" section on the WordPress Dashboard','Via SSH command line only'],ans:2,exp:'You execute a WordPress upgrade through the "Updates" section of the WordPress Dashboard.'},
+      {q:'What does "making a site public" require beyond local development?',opts:['Only a domain name','Only an SSL certificate','Hosting on a remote server','Upgrading to WordPress.com Pro'],ans:2,exp:'To make a site public and accessible on the internet, it must be hosted on a remote server (web hosting).'},
+      {q:'What type of WordPress update delivers security patches and new features?',opts:['Plugin updates','Theme updates','Core updates','Server updates'],ans:2,exp:'Core updates deliver security patches and new features to the WordPress core software itself.'},
+      {q:'What is a key benefit of a local development environment compared to directly editing a live site?',opts:['Live sites are more reliable for testing','Local environments are faster, offline-capable, and changes don\'t risk breaking the live site','Local environments require more payment','Live editing is always recommended by WordPress'],ans:1,exp:'Local environments are faster, offline-capable, and cost-free — and critically, you can test changes without risking your live, public website.'},
+    ]
+  },
+  {
+    id:'useradmin',
+    title:'WordPress User Admin & Security',
+    desc:'User roles, permissions, security best practices',
+    questions:[
+      {q:'What is the WordPress Admin also commonly called?',opts:['The Control Panel','The Dashboard','The Backend Manager','The Site Console'],ans:1,exp:'The WordPress Admin area is commonly called the Dashboard — the control center for your entire website.'},
+      {q:'What URL pattern is typically used to access the WordPress admin?',opts:['yourdomain.com/login','yourdomain.com/admin','yourdomain.com/wp-admin','yourdomain.com/backend'],ans:2,exp:'WordPress admin is typically accessed at yourdomain.com/wp-admin.'},
+      {q:'What is the Toolbar (Admin Bar) in WordPress?',opts:['The left-hand navigation menu','A shortcut bar at the top of the site visible when logged in','A plugin management panel','The Settings submenu'],ans:1,exp:'The Admin Bar (Toolbar) is a shortcut bar that appears at the top of the site when you are logged in as an admin.'},
+      {q:'What does the "Screen Options" menu do?',opts:['Changes the site\'s front-end theme','Lets you hide or show specific panels on each dashboard page','Manages user permissions','Controls media file display sizes'],ans:1,exp:'Screen Options (top right of each Dashboard page) lets you hide or show specific panels/meta boxes on that page.'},
+      {q:'What role has full access to all WordPress features?',opts:['Editor','Contributor','Subscriber','Administrator'],ans:3,exp:'The Administrator role has full access — can install plugins, change themes, delete users, and edit all content.'},
+      {q:'What can an Editor do that an Author cannot?',opts:['Install plugins','Publish and manage posts from OTHER users (not just their own)','Change site themes','Create new user accounts'],ans:1,exp:'An Editor can publish and manage posts from all users, while an Author can only manage their own posts.'},
+      {q:'What access level does an Author have?',opts:['Can only read posts','Can publish and manage their own posts only, and upload media','Can manage all users\' posts','Can install plugins'],ans:1,exp:'Authors have medium access — they can publish and manage their own posts only, and they can upload files to the media library.'},
+      {q:'What is the key limitation of the Contributor role?',opts:['Cannot write posts at all','Can write and manage posts but CANNOT publish them — requires review','Cannot log in to the dashboard','Can only view other users\' posts'],ans:1,exp:'Contributors can write and manage their own posts but cannot publish them. Their posts require review by an Editor or Administrator.'},
+      {q:'What can a Subscriber do in WordPress?',opts:['Publish their own posts','Manage all media files','Can only manage their own profile','Edit pages but not posts'],ans:2,exp:'Subscribers have minimal access — they can only manage their own profile. This role is typically used for membership sites.'},
+      {q:'What is a Super Admin role used for?',opts:['It is just another name for Administrator','It manages an entire network of WordPress websites (Multisite only)','It has the same permissions as Editor','It bypasses two-factor authentication'],ans:1,exp:'Super Admin is a Multisite-only role that can manage settings and content for an entire network of multiple WordPress websites.'},
+      {q:'What does the Principle of Least Privilege mean?',opts:['Give every user the highest access level for efficiency','Always give users the lowest level of access they actually need','Restrict all users to Subscriber role','Only Administrators should manage the site'],ans:1,exp:'The Principle of Least Privilege means always giving users the minimum level of access they need to do their job — e.g., a guest blogger gets Contributor, not Admin.'},
+      {q:'Why should you avoid using "admin" as a WordPress username?',opts:['WordPress no longer allows it technically','It makes the site visible to more visitors','It makes credential guessing 50% easier for hackers','It limits the number of posts you can publish'],ans:2,exp:'Using "admin" as a username gives hackers 50% of the credentials they need (the username) — making brute force attacks much easier.'},
+      {q:'What is Two-Factor Authentication (2FA)?',opts:['A backup method for forgotten passwords','An extra security layer requiring a code from a phone or email in addition to a password','Encrypting the database twice','Using two different admin accounts'],ans:1,exp:'2FA adds an extra security layer requiring a code from a phone or email app on top of your regular password login.'},
+      {q:'What username would represent the Principle of Least Privilege for a guest blogger?',opts:['Administrator','Editor','Author','Contributor'],ans:3,exp:'A guest blogger who can write but shouldn\'t publish independently should be given the Contributor role — the minimum needed.'},
+      {q:'Can an Administrator\'s username be changed after creation?',opts:['Yes, anytime in profile settings','No, the username cannot be changed after creation','Yes, but only by a Super Admin','Only through the database directly'],ans:1,exp:'According to the lecture notes, username cannot be changed once set — so choose carefully when creating a user.'},
+      {q:'What does WordPress do automatically when you create a new user?',opts:['Assigns them the Administrator role','Generates a strong password automatically','Sends their password to all admins','Creates a default post for them'],ans:1,exp:'WordPress automatically generates a strong password for new users, though you can override this with a custom password.'},
+      {q:'Why is forcing strong passwords important for all users?',opts:['It prevents plugin conflicts','Weak passwords on any account can be exploited to compromise the site','It improves page speed','It is required by GDPR law'],ans:1,exp:'Forcing strong passwords for all users is important because a weak password on any account — even a low-privilege one — can be exploited by attackers.'},
+      {q:'What does "Left-hand Navigation" in the Dashboard provide access to?',opts:['Site front-end pages','Posts, Pages, Media, Appearance, Plugins, and Users','Database tables and server logs','FTP connection settings'],ans:1,exp:'The Left-hand Navigation in the Dashboard provides access to Posts, Pages, Media, Appearance, Plugins, Users, and more.'},
+      {q:'What email is required when creating a new WordPress user?',opts:['Their social media email','The site admin\'s email','Their email address — required for password resets and notifications','Any email is optional'],ans:2,exp:'An email address is required when creating a user because it\'s used for password resets and WordPress notifications.'},
+      {q:'Where do you navigate to create a new user in WordPress?',opts:['Settings > Users','Appearance > Users','Users > Add New','Tools > Create User'],ans:2,exp:'To create a new user, navigate to Users > Add New in the WordPress Dashboard.'},
+      {q:'Which role manages content but NOT site settings?',opts:['Administrator','Super Admin','Editor','Subscriber'],ans:2,exp:'The Editor role has high access to manage and publish content including other users\' posts, but they do not manage site settings like plugins or themes.'},
+      {q:'What is the most critical step when creating a new user account?',opts:['Choosing their display name','Setting their email address','Assigning the correct role/access level','Setting their password'],ans:2,exp:'Assigning the correct role is described as the most critical step — giving the right level of access, no more and no less.'},
+    ]
+  },
+  {
+    id:'quiz',
+    title:'Quiz Review (Test 1 & 2)',
+    desc:'True/False and multiple choice review questions',
+    questions:[
+      {q:'TRUE or FALSE: A CMS requires users to write specialized code to create and modify website content.',opts:['True','False'],ans:1,exp:'FALSE — A CMS is specifically designed so users do NOT need specialized code. That is its core purpose.'},
+      {q:'TRUE or FALSE: WordPress.org provides a self-hosted version, while WordPress.com is a managed service.',opts:['True','False'],ans:0,exp:'TRUE — WordPress.org is self-hosted software; WordPress.com is a managed service using their own platform.'},
+      {q:'TRUE or FALSE: Manual installation requires downloading core files AND creating the database yourself.',opts:['True','False'],ans:0,exp:'TRUE — Manual installation involves downloading core files from WordPress.org and creating the database yourself.'},
+      {q:'TRUE or FALSE: The Principle of Least Privilege means giving users the highest level of access possible.',opts:['True','False'],ans:1,exp:'FALSE — Least Privilege means giving users the MINIMUM access they need, not the highest.'},
+      {q:'TRUE or FALSE: The WordPress Dashboard is the main control center, accessed via the site\'s specific admin URL.',opts:['True','False'],ans:0,exp:'TRUE — The Dashboard is the main control center for the entire website, accessed via yourdomain.com/wp-admin.'},
+      {q:'TRUE or FALSE: FTP is used to transfer files between the local computer and the remote server.',opts:['True','False'],ans:0,exp:'TRUE — File Transfer Protocol (FTP) is used to transfer files between your local computer and the remote server.'},
+      {q:'TRUE or FALSE: The Stack components typically include a web server, a database, and a scripting language.',opts:['True','False'],ans:0,exp:'TRUE — The Stack includes Apache/Nginx (web server), MySQL/MariaDB (database), and PHP (scripting language).'},
+      {q:'TRUE or FALSE: The Contributor role can publish posts independently without review.',opts:['True','False'],ans:1,exp:'FALSE — Contributors CANNOT publish independently. Their posts require review from an Editor or Administrator.'},
+      {q:'TRUE or FALSE: Staging means testing a new update on a live, public website.',opts:['True','False'],ans:1,exp:'FALSE — Staging means testing on a PRIVATE CLONE of the site, not the live public website.'},
+      {q:'TRUE or FALSE: Plugins are responsible for changes to a site\'s visual design and layout.',opts:['True','False'],ans:1,exp:'FALSE — Themes control visual design and layout. Plugins add FUNCTIONALITY, not visual design.'},
+      {q:'TRUE or FALSE: WordPress is built on PHP and MySQL.',opts:['True','False'],ans:0,exp:'TRUE — WordPress\'s core technology is PHP (scripting language) and MySQL (database).'},
+      {q:'TRUE or FALSE: Using "admin" as a username is a good security practice.',opts:['True','False'],ans:1,exp:'FALSE — "admin" is a poor security practice because it is easily guessed, making hackers\' job 50% easier.'},
+      {q:'TRUE or FALSE: Automatic installation is recommended even for users planning to customize the code.',opts:['True','False'],ans:1,exp:'FALSE — Automatic installation is easiest for most users, but if you plan to customize the code, you may have issues and the manual install is preferable.'},
+      {q:'TRUE or FALSE: A Super Admin can manage settings and content for an entire network of WordPress websites (Multisite).',opts:['True','False'],ans:0,exp:'TRUE — The Super Admin role is specifically for WordPress Multisite and can manage the entire network.'},
+      {q:'TRUE or FALSE: Before upgrading WordPress, backing up the database and wp-content folder are essential.',opts:['True','False'],ans:0,exp:'TRUE — Backing up both the entire database and the wp-content folder are essential safety protocols before any WordPress upgrade.'},
+      {q:'What is the primary function of a CMS?',opts:['To manually write all site code','To allow users to create and manage content without specialized technical knowledge','To manage only the visual design','To handle only e-commerce transactions'],ans:1,exp:'A CMS allows users to create, manage, and modify website content without needing specialized technical knowledge or the ability to write code from scratch.'},
+      {q:'Which component is the Web Server in the development Stack?',opts:['XAMPP','PHP','Apache/Nginx','MySQL/MariaDB'],ans:2,exp:'Apache/Nginx is the Web Server component of the development stack.'},
+      {q:'What security measure requires a code from a phone or email?',opts:['Dedicated server hosting','Strong password policy','SSL Certificates','Two-Factor Authentication (2FA)'],ans:3,exp:'Two-Factor Authentication (2FA) adds an extra security layer by requiring a code from a phone or email in addition to the password.'},
+      {q:'Which user role can publish and manage their own posts but NOT posts belonging to other users?',opts:['Editor','Contributor','Administrator','Author'],ans:3,exp:'The Author role can publish and manage their own posts only — not those of other users. That ability belongs to Editors.'},
+      {q:'If a website owner wants to test a major update without risking the live site, what should they do?',opts:['Check forums for similar reports','Test on a staging clone of the site','Ignore the update until mandatory','Change the website password immediately'],ans:1,exp:'The correct safety protocol is to test the update on a staging clone (private copy) of the site before applying to the live site.'},
+      {q:'What makes WordPress "open source"?',opts:['It is owned by a global board','It is powered by PHP','It can run on any server','It is licensed under GPL — free to use, modify, and redistribute'],ans:3,exp:'WordPress is open source because it is licensed under the GPL (General Public License), allowing the software to be freely used, modified, and redistributed.'},
+      {q:'What is the primary disadvantage of installing too many plugins?',opts:['It introduces security vulnerabilities only','Performance bloat — significantly slowing page load speeds','It prevents SEO optimization','It increases hosting costs'],ans:1,exp:'The primary disadvantage of too many plugins is performance bloat — they can significantly slow down page load speeds.'},
+      {q:'What role is most commonly used for site members who can only manage their own profile?',opts:['Editor','Author','Subscriber','Contributor'],ans:2,exp:'Subscriber is the minimal-access role — they can only manage their own profile, commonly used for membership sites.'},
+    ]
+  }
+];
+
+let currentModule = 0;
+let currentQ = 0;
+let answered = false;
+let scores = {};
+MODULES.forEach(m => scores[m.id] = {correct:0,total:0,done:false});
+
+function shuffle(arr){
+  let a=[...arr];
+  for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+let shuffledQs = [];
+
+function startModule(idx){
+  currentModule = idx;
+  currentQ = 0;
+  answered = false;
+  shuffledQs = shuffle(MODULES[idx].questions);
+  scores[MODULES[idx].id] = {correct:0,total:0,done:false};
+  render();
+}
+
+function render(){
+  const app = document.getElementById('app');
+  const mod = MODULES[currentModule];
+  const qs = shuffledQs;
+  const isDone = currentQ >= qs.length;
+
+  let tabsHTML = MODULES.map((m,i)=>{
+    const s = scores[m.id];
+    const pct = s.total>0 ? Math.round(s.correct/s.total*100)+'%' : '';
+    return `<button class="tab${i===currentModule?' active':''}" onclick="startModule(${i})">${m.title}${s.done?' ('+pct+')':''}</button>`;
+  }).join('');
+
+  if(isDone){
+    const s = scores[mod.id];
+    scores[mod.id].done = true;
+    const pct = Math.round(s.correct/s.total*100);
+    const allDone = MODULES.every(m=>scores[m.id].done);
+    let totalCorrect=0,totalQ=0;
+    MODULES.forEach(m=>{totalCorrect+=scores[m.id].correct;totalQ+=scores[m.id].total;});
+    const totalPct = totalQ>0 ? Math.round(totalCorrect/totalQ*100) : 0;
+    app.innerHTML = `
+      <div class="header"><h2>WordPress Final Exam Quiz</h2><p>8 topic modules • 20+ questions each</p></div>
+      <div class="tabs">${tabsHTML}</div>
+      <div class="quiz-card">
+        <div class="score-card">
+          <div class="score-big">${pct}%</div>
+          <div class="score-label">${mod.title}</div>
+          <div class="score-grid">
+            <div class="score-metric"><div class="num">${s.correct}</div><div class="lbl">Correct</div></div>
+            <div class="score-metric"><div class="num">${s.total-s.correct}</div><div class="lbl">Wrong</div></div>
+            <div class="score-metric"><div class="num">${s.total}</div><div class="lbl">Total</div></div>
+          </div>
+          ${allDone?`<div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;margin-bottom:1.25rem;font-size:14px;color:var(--color-text-secondary)">All modules complete! Overall score: <strong style="color:var(--color-text-primary)">${totalPct}%</strong> (${totalCorrect}/${totalQ})</div>`:''}
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+            <button class="btn primary" onclick="startModule(${currentModule})">Retake this module</button>
+            ${currentModule < MODULES.length-1 ? `<button class="btn" onclick="startModule(${currentModule+1})">Next module →</button>` : ''}
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const q = qs[currentQ];
+  const progress = Math.round((currentQ/qs.length)*100);
+
+  app.innerHTML = `
+    <div class="header"><h2>WordPress Final Exam Quiz</h2><p>8 topic modules • 20+ questions each</p></div>
+    <div class="tabs">${tabsHTML}</div>
+    <div class="quiz-card">
+      <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+      <div class="q-meta">${mod.title} — Question ${currentQ+1} of ${qs.length}</div>
+      <div class="q-text" id="qtext">${q.q}</div>
+      <div class="options" id="opts">
+        ${q.opts.map((o,i)=>`<button class="opt" id="opt${i}" onclick="answer(${i})">${o}</button>`).join('')}
+      </div>
+      <div id="fb"></div>
+      <div class="nav">
+        <span style="font-size:13px;color:var(--color-text-tertiary)">${scores[mod.id].correct} correct so far</span>
+        <button class="btn primary" id="nextbtn" style="display:none" onclick="next()">Next question →</button>
+      </div>
+    </div>`;
+}
+
+function answer(idx){
+  if(answered) return;
+  answered = true;
+  const mod = MODULES[currentModule];
+  const q = shuffledQs[currentQ];
+  const isCorrect = idx === q.ans;
+  scores[mod.id].total++;
+  if(isCorrect) scores[mod.id].correct++;
+
+  q.opts.forEach((_,i)=>{
+    const btn = document.getElementById('opt'+i);
+    btn.disabled = true;
+    if(i===q.ans) btn.classList.add('correct');
+    else if(i===idx && !isCorrect) btn.classList.add('wrong');
+  });
+
+  document.getElementById('fb').innerHTML = `<div class="feedback ${isCorrect?'correct':'wrong'}">${isCorrect?'✓ Correct! ':'✗ Incorrect. '}${q.exp}</div>`;
+  document.getElementById('nextbtn').style.display='block';
+}
+
+function next(){
+  currentQ++;
+  answered = false;
+  render();
+}
+
+render();
+</script>
